@@ -3,23 +3,24 @@ package monitor
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 )
 
 func extractTime(s string) (time.Time, error) {
-	split := strings.Split(s, " ")
-	for _, s := range split {
-		if strings.HasPrefix(s, "time") {
-			split := strings.Split(s, "=")
-			t, err := time.Parse(time.RFC3339, split[1][1:len(split[1])-1])
-			if err != nil {
-				return time.Now(), err
-			}
-			return round(t, time.Second), nil
-		}
+	r := regexp.MustCompile("time=\"[0-9-T:+]*\"")
+	match := r.FindStringSubmatch(s)
+	if match == nil {
+		return time.Now(), errors.New(fmt.Sprintf("string contains no time [s=%s]", s))
 	}
-	return time.Now(), errors.New(fmt.Sprintf("string contains no time [s=%s]", s))
+
+	v := strings.ReplaceAll(strings.Split(match[0], "=")[1], "\"", "")
+	t, err := time.Parse(time.RFC3339, v)
+	if err != nil {
+		return time.Now(), err
+	}
+	return t, nil
 }
 
 func round(t time.Time, d time.Duration) time.Time {
