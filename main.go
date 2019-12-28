@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	m := monitor.NewLogStream("job-postings.log")
+	m := monitor.NewLogStream("/tmp/job-postings.log")
 	m.Run()
 }
