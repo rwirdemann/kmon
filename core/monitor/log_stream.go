@@ -2,16 +2,17 @@ package monitor
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type LogStream struct {
 	filename  string
-	snapshots []Snapshot
+	Snapshots []*Snapshot
 }
 
 func NewLogStream(filename string) LogStream {
@@ -42,29 +43,37 @@ func (m LogStream) Run() {
 
 func (m *LogStream) process(line string) {
 	start, _ := extractTime(line)
-	snap := m.getOrCreateSnapshot(start)
+	start = round(start, time.Second)
+	end := start.Add(1 * time.Minute)
+	snap := m.findOrCreateSnapshot(start, end)
 	if strings.Contains(line, "http status=200") {
 		snap.successes++
 	}
 	if strings.Contains(line, "http status=400") {
 		snap.failures++
 	}
-	fmt.Println(snap)
+
+	if snap.failures > snap.successes {
+		logrus.Error(snap)
+	} else if snap.failures == snap.successes {
+		logrus.Warn(snap)
+	} else {
+		logrus.Info(snap)
+	}
+
 }
 
-func (m *LogStream) getOrCreateSnapshot(t time.Time) *Snapshot {
-	if len(m.snapshots) > 0 {
-		s := &m.snapshots[len(m.snapshots)-1]
-		if t.After(s.start) {
-			s.end = t
-		} else {
+func (m *LogStream) findOrCreateSnapshot(start time.Time, end time.Time) *Snapshot {
+	for _, s := range m.Snapshots {
+		if s.start.Equal(start) && s.end.Equal(end) {
 			return s
 		}
 	}
-	end := time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute()+1, 0, 0, t.Location())
-	s := Snapshot{id: len(m.snapshots) + 1, start: t, end: end}
-	m.snapshots = append(m.snapshots, s)
-	return &s
+
+	s := &Snapshot{id: len(m.Snapshots) + 1, start: start, end: end}
+	m.Snapshots = append(m.Snapshots, s)
+
+	return s
 }
 
 func check(err error) {

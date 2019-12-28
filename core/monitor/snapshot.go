@@ -14,5 +14,5 @@ type Snapshot struct {
 }
 
 func (s Snapshot) String() string {
-	return fmt.Sprintf("%d: [%s-%s] ok: %d nok: %d", s.id, s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.successes, s.failures)
+	return fmt.Sprintf("[%s-%s] posted: %d failed: %d", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.successes, s.failures)
 }
