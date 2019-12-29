@@ -1,10 +1,14 @@
 package main
 
 import (
-	"github.com/rwirdemann/kmon/core/monitor"
+	"flag"
+
+	"github.com/rwirdemann/kmon/monitor"
 )
 
 func main() {
-	m := monitor.NewLogStream("/tmp/job-postings.log")
+	filename := flag.String("logfile", "/tmp/jobdog.log", "name of the logfile to monitor")
+	flag.Parse()
+	m := monitor.NewLogStream(*filename)
 	m.Run()
 }

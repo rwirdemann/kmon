@@ -4,19 +4,18 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 	"time"
 )
 
+const layout = "2006-01-02 15:04:05.999"
+
 func extractTime(s string) (time.Time, error) {
-	r := regexp.MustCompile("time=\"[0-9-T:+]*\"")
+	r := regexp.MustCompile("[0-9-]* [0-9:.]*")
 	match := r.FindStringSubmatch(s)
 	if match == nil {
 		return time.Now(), errors.New(fmt.Sprintf("string contains no time [s=%s]", s))
 	}
-
-	v := strings.ReplaceAll(strings.Split(match[0], "=")[1], "\"", "")
-	t, err := time.Parse(time.RFC3339, v)
+	t, err := time.Parse(layout, match[0])
 	if err != nil {
 		return time.Now(), err
 	}

@@ -2,12 +2,9 @@
 
 Simple example for a KPI monitor that observes the publishing of job postings.
 
-## Create log file
+## Run the monitor
 ```
-./post.sh
-```
+go run main.go # parsed logfile defaults to /tmp/jobdog.log
 
-## Run monitor
+go run main.go -logfile jobdog.log 
 ```
-go run main.go
-

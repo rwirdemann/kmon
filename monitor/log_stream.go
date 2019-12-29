@@ -46,10 +46,10 @@ func (m *LogStream) process(line string) {
 	start = round(start, time.Second)
 	end := start.Add(1 * time.Minute)
 	snap := m.findOrCreateSnapshot(start, end)
-	if strings.Contains(line, "http status=200") {
+	if strings.Contains(line, "status=200") {
 		snap.successes++
 	}
-	if strings.Contains(line, "http status=400") {
+	if strings.Contains(line, "status=400") {
 		snap.failures++
 	}
 
