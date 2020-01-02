@@ -8,8 +8,8 @@ import (
 
 func main() {
 	filename := flag.String("logfile", "/tmp/jobdog.log", "name of the logfile to monitor")
-	limit := flag.Float64("limit", 0.1, "acceptable error limit")
+	minConsecutiveSuccesses := flag.Int("minsuccesses", 10, "min number of consecutive successes")
 	flag.Parse()
-	m := monitor.NewLogStream(*filename, *limit)
+	m := monitor.NewLogStream(*filename, *minConsecutiveSuccesses)
 	m.Run()
 }

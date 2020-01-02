@@ -4,17 +4,23 @@ import (
 	"bufio"
 	"io"
 	"os"
+	"strings"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type LogStream struct {
-	filename  string
-	limit     float64
-	Snapshots []*Snapshot
+	filename                string
+	successes               int
+	consecutiveSuccesses    int
+	minConsecutiveSuccesses int
+	failures                int
+	posted                  int
 }
 
-func NewLogStream(filename string, limit float64) LogStream {
-	m := LogStream{filename: filename, limit: limit}
+func NewLogStream(filename string, minConsecutiveSuccesses int) LogStream {
+	m := LogStream{filename: filename, consecutiveSuccesses: 1000, minConsecutiveSuccesses: minConsecutiveSuccesses}
 	return m
 }
 
@@ -40,25 +46,24 @@ func (m LogStream) Run() {
 }
 
 func (m *LogStream) process(line string) {
-	start, _ := extractTime(line)
-	start = round(start, time.Second)
-	end := start.Add(1 * time.Minute)
-	snap := m.findOrCreateSnapshot(start, end)
-	snap.Process(line)
-	snap.Log(m.limit)
-}
-
-func (m *LogStream) findOrCreateSnapshot(start time.Time, end time.Time) *Snapshot {
-	for _, s := range m.Snapshots {
-		if s.start.Equal(start) && s.end.Equal(end) {
-			return s
-		}
+	if strings.Contains(line, "Published job") {
+		m.posted++
 	}
 
-	s := &Snapshot{id: len(m.Snapshots) + 1, start: start, end: end}
-	m.Snapshots = append(m.Snapshots, s)
+	if strings.Contains(line, "status=200") {
+		m.successes++
+		m.consecutiveSuccesses++
+	}
+	if strings.Contains(line, "status=400") {
+		m.failures++
+		m.consecutiveSuccesses = 0
+	}
 
-	return s
+	if m.consecutiveSuccesses >= m.minConsecutiveSuccesses {
+		logrus.WithFields(logrus.Fields{"published": m.posted, "success": m.successes, "failures": m.failures}).Info()
+	} else {
+		logrus.WithFields(logrus.Fields{"published": m.posted, "success": m.successes, "failures": m.failures}).Error()
+	}
 }
 
 func check(err error) {
