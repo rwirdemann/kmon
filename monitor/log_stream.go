@@ -28,7 +28,7 @@ func (m LogStream) Run() {
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
-				time.Sleep(1 * time.Second)
+				time.Sleep(10 * time.Second)
 			} else {
 				break
 			}
