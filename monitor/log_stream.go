@@ -9,11 +9,12 @@ import (
 
 type LogStream struct {
 	filename  string
+	limit     float64
 	Snapshots []*Snapshot
 }
 
-func NewLogStream(filename string) LogStream {
-	m := LogStream{filename: filename}
+func NewLogStream(filename string, limit float64) LogStream {
+	m := LogStream{filename: filename, limit: limit}
 	return m
 }
 
@@ -44,7 +45,7 @@ func (m *LogStream) process(line string) {
 	end := start.Add(1 * time.Minute)
 	snap := m.findOrCreateSnapshot(start, end)
 	snap.Process(line)
-	snap.Log()
+	snap.Log(m.limit)
 }
 
 func (m *LogStream) findOrCreateSnapshot(start time.Time, end time.Time) *Snapshot {

@@ -31,14 +31,14 @@ func (s *Snapshot) Process(line string) {
 	}
 }
 
-func (s *Snapshot) Log() {
+func (s *Snapshot) Log(limit float64) {
 	if s.posted == 0 {
 		return
 	}
 
-	rate := float32(s.failures) / float32(s.posted)
-	if rate > 0.05 {
-		current := fmt.Sprintf("[%s-%s] error rate execeeds limit [posted=%d, failed=%d, limit=0.050, rate=%.3f]", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.posted, s.failures, rate)
+	rate := float64(s.failures) / float64(s.posted)
+	if rate > limit {
+		current := fmt.Sprintf("[%s-%s] error rate execeeds limit [posted=%d, failed=%d, limit=%.3f, rate=%.3f]", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.posted, s.failures, limit, rate)
 		if current != s.lastlog {
 			logrus.Error(current)
 			s.lastlog = current
@@ -47,7 +47,7 @@ func (s *Snapshot) Log() {
 	}
 
 	if s.failures > 0 {
-		current := fmt.Sprintf("[%s-%s] error rate increases [posted=%d, failed=%d, limit=0.050, rate=%.3f]", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.posted, s.failures, rate)
+		current := fmt.Sprintf("[%s-%s] error rate increases [posted=%d, failed=%d, limit=%.3f, rate=%.3f]", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.posted, s.failures, limit, rate)
 		if current != s.lastlog {
 			logrus.Warn(current)
 			s.lastlog = current
@@ -55,7 +55,7 @@ func (s *Snapshot) Log() {
 		return
 	}
 
-	current := fmt.Sprintf("[%s-%s] all fine [posted=%d, failed=%d, limit=0.050, rate=%.3f]", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.posted, s.failures, rate)
+	current := fmt.Sprintf("[%s-%s] all fine [posted=%d, failed=%d, limit=%.3f, rate=%.3f]", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.posted, s.failures, limit, rate)
 	if current != s.lastlog {
 		logrus.Info(current)
 		s.lastlog = current
