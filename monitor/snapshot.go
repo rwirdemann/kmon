@@ -36,6 +36,15 @@ func (s *Snapshot) Log(limit float64) {
 		return
 	}
 
+	if s.posted <= 10 {
+		current := fmt.Sprintf("[%s-%s] still collecting data [posted=%d, failed=%d]", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.posted, s.failures)
+		if current != s.lastlog {
+			logrus.Info(current)
+			s.lastlog = current
+			return
+		}
+	}
+
 	rate := float64(s.failures) / float64(s.posted)
 	if rate > limit {
 		current := fmt.Sprintf("[%s-%s] error rate execeeds limit [posted=%d, failed=%d, limit=%.3f, rate=%.3f]", s.start.Format("15:04:05"), s.end.Format("15:04:05"), s.posted, s.failures, limit, rate)
