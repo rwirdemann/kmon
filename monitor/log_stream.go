@@ -6,8 +6,6 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 type LogStream struct {
@@ -46,6 +44,11 @@ func (m *LogStream) process(line string) {
 	start = round(start, time.Second)
 	end := start.Add(1 * time.Minute)
 	snap := m.findOrCreateSnapshot(start, end)
+
+	if strings.Contains(line, "Published job") {
+		snap.posted++
+	}
+
 	if strings.Contains(line, "status=200") {
 		snap.successes++
 	}
@@ -53,14 +56,7 @@ func (m *LogStream) process(line string) {
 		snap.failures++
 	}
 
-	if snap.failures > snap.successes {
-		logrus.Error(snap)
-	} else if snap.failures == snap.successes {
-		logrus.Warn(snap)
-	} else {
-		logrus.Info(snap)
-	}
-
+	snap.Log()
 }
 
 func (m *LogStream) findOrCreateSnapshot(start time.Time, end time.Time) *Snapshot {
