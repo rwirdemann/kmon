@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -46,23 +47,22 @@ func (m LogStream) Run() {
 }
 
 func (m *LogStream) process(line string) {
-	if strings.Contains(line, "Published job") {
-		m.posted++
-	}
-
 	if strings.Contains(line, "status=200") {
+		m.posted++
 		m.successes++
 		m.consecutiveSuccesses++
 	}
 	if strings.Contains(line, "status=400") {
+		m.posted++
 		m.failures++
 		m.consecutiveSuccesses = 0
 	}
 
+	s := fmt.Sprintf("published: %d, successes: %d, failures: %d", m.posted, m.successes, m.failures)
 	if m.consecutiveSuccesses >= m.minConsecutiveSuccesses {
-		logrus.WithFields(logrus.Fields{"published": m.posted, "success": m.successes, "failures": m.failures}).Info()
+		logrus.Info(s)
 	} else {
-		logrus.WithFields(logrus.Fields{"published": m.posted, "success": m.successes, "failures": m.failures}).Error()
+		logrus.Error(s)
 	}
 }
 
