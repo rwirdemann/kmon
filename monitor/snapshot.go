@@ -41,8 +41,8 @@ func (s *Snapshot) Log(limit float64) {
 		if current != s.lastlog {
 			logrus.Info(current)
 			s.lastlog = current
-			return
 		}
+		return
 	}
 
 	rate := float64(s.failures) / float64(s.posted)
