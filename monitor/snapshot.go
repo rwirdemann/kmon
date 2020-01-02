@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -15,6 +16,19 @@ type Snapshot struct {
 	failures  int
 	posted    int
 	lastlog   string
+}
+
+func (s *Snapshot) Process(line string) {
+	if strings.Contains(line, "Published job") {
+		s.posted++
+	}
+
+	if strings.Contains(line, "status=200") {
+		s.successes++
+	}
+	if strings.Contains(line, "status=400") {
+		s.failures++
+	}
 }
 
 func (s *Snapshot) Log() {

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"io"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -44,18 +43,7 @@ func (m *LogStream) process(line string) {
 	start = round(start, time.Second)
 	end := start.Add(1 * time.Minute)
 	snap := m.findOrCreateSnapshot(start, end)
-
-	if strings.Contains(line, "Published job") {
-		snap.posted++
-	}
-
-	if strings.Contains(line, "status=200") {
-		snap.successes++
-	}
-	if strings.Contains(line, "status=400") {
-		snap.failures++
-	}
-
+	snap.Process(line)
 	snap.Log()
 }
 
